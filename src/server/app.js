@@ -1,8 +1,9 @@
-var http = require('http').createServer(handler);
-var io = require('socket.io').listen(http);
-var util = require('util');
-var twitter = require('twitter');
+//var http = require('http').createServer(handler);
+//var io = require('socket.io').listen(http);
+//var util = require('util');
+//var twitter = require('twitter');
 
+var fridge = require('./fridge');
 var credentials = require('./credentials.js');
 
 var twit = new twitter({
