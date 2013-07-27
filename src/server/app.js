@@ -1,18 +1,24 @@
 var restify = require('restify');
 var socketio = require('socket.io');
-var util = require('util'),
-twitter = require('twitter');
+var fs = require('fs');
+var util = require('util');
+var twitter = require('twitter');
+
+var credentials = require('./credentials.js');
+
+var credentailsFile = __dirname + '/credentails.json';
+
 var twit = new twitter({
-consumer_key: 'n69vz6MxqrZGWmpJCpkbQ',
-consumer_secret: 'vB6uMDz0gOx2qFFaIkHcZVjUukiIv6gVbAvrj0Ca8',
-access_token_key: '883164902-P0J0b4RPfC3rL8wCv8ECvBupXL7nI8CGxjou9YfK',
-access_token_secret: 'WLdADqYgXB6VSSa7zJfhmoWoIubiItqsuaSbRNk'
+    consumer_key: credentials.consumer_key,
+    consumer_secret: credentials.consumer_secret,
+    access_token_key: credentials.access_token_key,
+    access_token_secret: credentials.access_token_secret
 });
 
 twit.stream('statuses/sample', function(stream) {
-    stream.on('data', function(data) {
-        console.log(util.inspect(data));
-    });
+	stream.on('data', function(data) {
+		console.log(util.inspect(data));
+	});
 });
 
 
