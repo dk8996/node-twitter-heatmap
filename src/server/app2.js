@@ -3,6 +3,10 @@ var io = require('socket.io').listen(http);
 var util = require('util');
 var locations = {};
 
+var fs = require('fs');
+var file = __dirname + '/city_data.json';
+var cityData = {};
+
 var credentials = require('./credentials.js');
 
 console.log(credentials.credentials.consumer_key);
@@ -58,8 +62,9 @@ var tu = require('tuiter')(keys);
 //
 //});
 
-tu.filter({locations: [{lat: 36, long: -123},{lat: 38, long: -122},{lat: 41.1, long: -71.7},{lat: 42.8, long: -70}]}, function(stream){
 
+tu.filter({locations: [{lat: 36, long: -123},{lat: 38, long: -122},{lat: 41.1, long: -71.7},{lat: 42.8, long: -70}]}, function(stream){
+	  
 	  // New tweet
 	  stream.on("tweet", function(data){
 	    console.log(data.text);
