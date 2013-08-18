@@ -3,6 +3,7 @@ var io = require('socket.io').listen(http);
 var util = require('util');
 var locations = {};
 
+
 var cityBoxs = [];
 var cityData = require('./city_data.json');
 for ( var i = 0; i < cityData.length; i++) {
@@ -68,55 +69,75 @@ var tu = require('tuiter')(keys);
 //
 //});
 
+function findCity(coordinates) {
+	var lat = coordinates[1];
+	var long = coordinates[0];
+	for ( var i = 0; i < cityData.length; i++) {
+		var sw = cityData[i].box[0];
+		var ne = cityData[i].box[1];
+		if (sw.lat < lat && ne.lat < lat && sw.long < long && ne.long > long) {
+			return cityData[i];
+		}
+	}
+	return undefined;
+}
 
-tu.filter({locations: cityBoxs}, function(stream){
-	  
-	  // New tweet
-	  stream.on("tweet", function(data){
-	    console.log(data.text);
-	    console.log(data.entities);
-	    console.log(data.coordinates);
-	    console.log(data.place.full_name);
-	    console.log(data.place.bounding_box.coordinates);
-	    
-	    if(data.coordinates && data.coordinates.coordinates){
-	      io.sockets.emit("update", {
-	          coordinates: data.coordinates.coordinates
-	        , screen_name: data.user.screen_name
-	        , text: data.text
-	        , profile_image_url: data.user.profile_image_url
-	        , media_url: data.entities.media 
-	      });
-	    } else if(data.place){
-	      var place = data.place.bounding_box.coordinates[0][0];
-	       io.sockets.emit("update", {
-	          coordinates: place
-	        , screen_name: data.user.screen_name
-	        , text: data.text
-	        , profile_image_url: data.user.profile_image_url
-	        , media_url: data.entities.media
-	      });
-	    }
-	  });
+function sendDataToClient(data) {
+	var cityDataObject = findCity(data.coordinates);
+	if(city !== undefined){
+		io.sockets.to(cityDataObject.city).emit('update', data);
+	}
+}
 
-	  stream.on("delete", function(data){
-	    console.log("delete");
-	    //I don't care about deleted tweets
-	  });
+tu.filter({locations : cityBoxs }, function(stream) {
+	
+	// New tweet
+	stream.on("tweet", function(data) {
+		console.log(data.text);
+		console.log(data.entities);
+		console.log(data.coordinates);
+		console.log(data.place.full_name);
+		console.log(data.place.bounding_box.coordinates);
 
-	  // Log errors
-	  stream.on("error", function(error){
-	    // handle errors
-	    console.log("error:"+error);
-	  });
+		if (data.coordinates && data.coordinates.coordinates) {
+			sendDataToClient({
+				coordinates : data.coordinates.coordinates,
+				screen_name : data.user.screen_name,
+				text : data.text,
+				profile_image_url : data.user.profile_image_url,
+				media_url : data.entities.media
+			});
 
+		} else if (data.place) {
+			var place = data.place.bounding_box.coordinates[0][0];
+			sendDataToClient({
+				coordinates : place,
+				screen_name : data.user.screen_name,
+				text : data.text,
+				profile_image_url : data.user.profile_image_url,
+				media_url : data.entities.media
+			});
+		}
 	});
+
+	stream.on("delete", function(data) {
+		console.log("delete");
+		// I don't care about deleted tweets
+	});
+
+	// Log errors
+	stream.on("error", function(error) {
+		// handle errors
+		console.log("error:" + error);
+	});
+
+});
 
 
 
 function handler(req, res) {
-//	fs.readFile('index.html', function(err, data) {
-//		res.writeHead(200, {
+// fs.readFile('index.html', function(err, data) {
+// res.writeHead(200, {
 //			'Content-Type' : 'text/html'
 //		});
 //		res.end(data);
@@ -126,15 +147,16 @@ function handler(req, res) {
 
 io.sockets.on('connection', function(socket) {
 	console.log("Someone connected");
-
-	socket.on('subscribe', function(location) {
-		if (socket.location === undefined) {
+	var city = "Boston";
+	socket.location = city;
+	socket.join(city);
+	
+	socket.on('subscribe', function(city) {
+		if (socket.location !== undefined) {
 			socket.leave(socket.location);
 		}
-		
-		socket.location = location;
-		locations[location] = location;
-		socket.join(location);
+		socket.location = city;
+		socket.join(city);
 	});
 });
 
