@@ -58,7 +58,7 @@ var tu = require('tuiter')(keys);
 //
 //});
 
-tu.filter({locations: [{lat: 36, long: -123},{lat: 38, long: -122}]}, function(stream){
+tu.filter({locations: [{lat: 36, long: -123},{lat: 38, long: -122},{lat: 41.1, long: -71.7},{lat: 42.8, long: -70}]}, function(stream){
 
 	  // New tweet
 	  stream.on("tweet", function(data){
