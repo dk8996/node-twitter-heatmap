@@ -75,7 +75,7 @@ function findCity(coordinates) {
 	for ( var i = 0; i < cityData.length; i++) {
 		var sw = cityData[i].box[0];
 		var ne = cityData[i].box[1];
-		if (sw.lat < lat && ne.lat < lat && sw.long < long && ne.long > long) {
+		if (sw.lat < lat && ne.lat > lat && sw.long < long && ne.long > long) {
 			return cityData[i];
 		}
 	}
@@ -84,7 +84,7 @@ function findCity(coordinates) {
 
 function sendDataToClient(data) {
 	var cityDataObject = findCity(data.coordinates);
-	if(city !== undefined){
+	if(cityDataObject !== undefined){
 		io.sockets.to(cityDataObject.city).emit('update', data);
 	}
 }
@@ -129,6 +129,7 @@ tu.filter({locations : cityBoxs }, function(stream) {
 	stream.on("error", function(error) {
 		// handle errors
 		console.log("error:" + error);
+		  stream.emit('reconnect');
 	});
 
 });
